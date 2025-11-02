@@ -36,9 +36,9 @@ Fully working examples of different dedicated servers.
 
 | Tag          | Description                                                                     |
 |--------------|---------------------------------------------------------------------------------|
-| stable       | Ubuntu 24.10: wine, steamcmd (package).                                         |
-| latest       | Ubuntu 24.10: winehq STABLE packages, steamcmd (package). This **WILL** break.  |
-| experimental | Ubuntu 24.10: winehq STAGING packages, steamcmd (package). This **WILL** break. |
+| stable       | Ubuntu 24.04 LTS: wine, steamcmd (package).                                     |
+| latest       | Ubuntu 24.04 LTS: winehq STABLE packages, steamcmd (package). This **WILL** break.  |
+| experimental | Ubuntu 24.04 LTS: winehq STAGING packages, steamcmd (package). This **WILL** break. |
 * Containers are automatically rebuilt weekly.
 
 ## Parameters

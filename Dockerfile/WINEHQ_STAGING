@@ -1,7 +1,8 @@
 # Add wine
 dpkg --add-architecture i386 && \
-wget -qO - https://dl.winehq.org/wine-builds/winehq.key | apt-key add - && \
-apt-add-repository 'deb https://dl.winehq.org/wine-builds/ubuntu/ bionic main' && \
+mkdir -p /etc/apt/keyrings && \
+wget -qO /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key && \
+wget -qO /etc/apt/sources.list.d/winehq-jammy.sources https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources && \
 apt-get --quiet update && \
 apt-get install --yes --install-recommends \
   libsdl2-2.0-0 \

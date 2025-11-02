@@ -1,4 +1,4 @@
-name: Build Steam Docker Image and Deploy
+name: Build Image and Publish
 on:
   # Run on every main branch push
   push:
@@ -11,6 +11,7 @@ on:
 jobs:
   # Deploy a new image to DockerHub
   build-and-publish-dockerhub:
+    name: Build & Publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,16 +55,3 @@ jobs:
           docker push thetestgame/steam:winehq-$SHORT_SHA
           docker push thetestgame/steam:experimental-$SHORT_SHA
         fi
-
-  # Update our DockerHub README
-  docker-hub-description:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Docker Hub Description
-        uses: peter-evans/dockerhub-description@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: thetestgame/steam
