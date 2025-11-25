@@ -29,6 +29,14 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    # Authenticate with GitHub Container Registry
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
     # Publish our built container images
     - name: Push Docker images to DockerHub
@@ -54,4 +62,36 @@ jobs:
           docker push thetestgame/steam:latest-$SHORT_SHA
           docker push thetestgame/steam:winehq-$SHORT_SHA
           docker push thetestgame/steam:experimental-$SHORT_SHA
+        fi
+
+    # Publish container images to GitHub Packages
+    - name: Push Docker images to GitHub Packages
+      run: |
+        # Tag images for GitHub Container Registry
+        docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable
+        docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest
+        docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq
+        docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental
+
+        # Push the default tags to GitHub Packages
+        docker push ghcr.io/${{ github.repository_owner }}/steam:stable
+        docker push ghcr.io/${{ github.repository_owner }}/steam:latest
+        docker push ghcr.io/${{ github.repository_owner }}/steam:winehq
+        docker push ghcr.io/${{ github.repository_owner }}/steam:experimental
+
+        # Only add SHA tags if the event is a push to the main branch
+        if [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/heads/main' ]]; then
+          # Retrieve the short SHA
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          # Tag and push the images with the new tags
+          docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable-$SHORT_SHA
+          docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest-$SHORT_SHA
+          docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq-$SHORT_SHA
+          docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental-$SHORT_SHA
+
+          docker push ghcr.io/${{ github.repository_owner }}/steam:stable-$SHORT_SHA
+          docker push ghcr.io/${{ github.repository_owner }}/steam:latest-$SHORT_SHA
+          docker push ghcr.io/${{ github.repository_owner }}/steam:winehq-$SHORT_SHA
+          docker push ghcr.io/${{ github.repository_owner }}/steam:experimental-$SHORT_SHA
         fi
