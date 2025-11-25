@@ -67,17 +67,20 @@ jobs:
     # Publish container images to GitHub Packages
     - name: Push Docker images to GitHub Packages
       run: |
+        # Convert repository owner to lowercase for Docker compatibility
+        REPO_OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
         # Tag images for GitHub Container Registry
-        docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable
-        docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest
-        docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq
-        docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental
+        docker tag thetestgame/steam:stable ghcr.io/${REPO_OWNER_LOWER}/steam:stable
+        docker tag thetestgame/steam:latest ghcr.io/${REPO_OWNER_LOWER}/steam:latest
+        docker tag thetestgame/steam:winehq ghcr.io/${REPO_OWNER_LOWER}/steam:winehq
+        docker tag thetestgame/steam:experimental ghcr.io/${REPO_OWNER_LOWER}/steam:experimental
 
         # Push the default tags to GitHub Packages
-        docker push ghcr.io/${{ github.repository_owner }}/steam:stable
-        docker push ghcr.io/${{ github.repository_owner }}/steam:latest
-        docker push ghcr.io/${{ github.repository_owner }}/steam:winehq
-        docker push ghcr.io/${{ github.repository_owner }}/steam:experimental
+        docker push ghcr.io/${REPO_OWNER_LOWER}/steam:stable
+        docker push ghcr.io/${REPO_OWNER_LOWER}/steam:latest
+        docker push ghcr.io/${REPO_OWNER_LOWER}/steam:winehq
+        docker push ghcr.io/${REPO_OWNER_LOWER}/steam:experimental
 
         # Only add version tags if the event is a tag push
         if [[ $GITHUB_REF == refs/tags/* ]]; then
@@ -85,15 +88,15 @@ jobs:
           VERSION_TAG=${GITHUB_REF#refs/tags/}
 
           # Tag and push the images with the new tags
-          docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable-$VERSION_TAG
-          docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest-$VERSION_TAG
-          docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq-$VERSION_TAG
-          docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental-$VERSION_TAG
+          docker tag thetestgame/steam:stable ghcr.io/${REPO_OWNER_LOWER}/steam:stable-$VERSION_TAG
+          docker tag thetestgame/steam:latest ghcr.io/${REPO_OWNER_LOWER}/steam:latest-$VERSION_TAG
+          docker tag thetestgame/steam:winehq ghcr.io/${REPO_OWNER_LOWER}/steam:winehq-$VERSION_TAG
+          docker tag thetestgame/steam:experimental ghcr.io/${REPO_OWNER_LOWER}/steam:experimental-$VERSION_TAG
 
-          docker push ghcr.io/${{ github.repository_owner }}/steam:stable-$VERSION_TAG
-          docker push ghcr.io/${{ github.repository_owner }}/steam:latest-$VERSION_TAG
-          docker push ghcr.io/${{ github.repository_owner }}/steam:winehq-$VERSION_TAG
-          docker push ghcr.io/${{ github.repository_owner }}/steam:experimental-$VERSION_TAG
+          docker push ghcr.io/${REPO_OWNER_LOWER}/steam:stable-$VERSION_TAG
+          docker push ghcr.io/${REPO_OWNER_LOWER}/steam:latest-$VERSION_TAG
+          docker push ghcr.io/${REPO_OWNER_LOWER}/steam:winehq-$VERSION_TAG
+          docker push ghcr.io/${REPO_OWNER_LOWER}/steam:experimental-$VERSION_TAG
         fi
 
   # Trigger downstream game server repositories to rebuild with new base image
