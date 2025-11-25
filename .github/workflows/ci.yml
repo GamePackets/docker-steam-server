@@ -95,3 +95,57 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/steam:winehq-$SHORT_SHA
           docker push ghcr.io/${{ github.repository_owner }}/steam:experimental-$SHORT_SHA
         fi
+
+  # Trigger downstream game server repositories to rebuild with new base image
+  trigger-downstream-repos:
+    name: Trigger Downstream Repositories
+    needs: build-and-publish-dockerhub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token from GitHub App
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Get repositories and trigger builds
+        run: |
+          # Get all repos with the steam-game-server topic
+          REPOS=$(gh repo list ${{ github.repository_owner }} \
+            --topic steam-game-server \
+            --json name \
+            --jq '.[].name')
+
+          if [ -z "$REPOS" ]; then
+            echo "No repositories found with topic 'steam-game-server'"
+            exit 0
+          fi
+
+          echo "Found repositories to trigger:"
+          echo "$REPOS"
+          echo ""
+
+          # Trigger each repo
+          SUCCESS_COUNT=0
+          FAIL_COUNT=0
+          for repo in $REPOS; do
+            echo "Triggering $repo..."
+            if gh api repos/${{ github.repository_owner }}/$repo/dispatches \
+              --method POST \
+              --field event_type="steam-base-updated" \
+              --field client_payload[version]="${{ github.sha }}" \
+              --field client_payload[tag]="latest"; then
+              echo "✓ Successfully triggered $repo"
+              SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+            else
+              echo "✗ Failed to trigger $repo"
+              FAIL_COUNT=$((FAIL_COUNT + 1))
+            fi
+          done
+
+          echo ""
+          echo "Summary: $SUCCESS_COUNT succeeded, $FAIL_COUNT failed"
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
