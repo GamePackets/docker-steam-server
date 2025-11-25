@@ -39,7 +39,19 @@ Fully working examples of different dedicated servers.
 | stable       | Ubuntu 24.04 LTS: wine, steamcmd (package).                                     |
 | latest       | Ubuntu 24.04 LTS: winehq STABLE packages, steamcmd (package). This **WILL** break.  |
 | experimental | Ubuntu 24.04 LTS: winehq STAGING packages, steamcmd (package). This **WILL** break. |
-* Containers are automatically rebuilt weekly.
+
+### Versioned Tags
+
+In addition to the main tags above, versioned tags are automatically created when changes are made to the Dockerfile, Makefile, or source directory. These follow the format `{tag}-yyyy-mm-dd.{counter}`:
+
+| Tag Pattern           | Description                                           | Example              |
+|-----------------------|-------------------------------------------------------|----------------------|
+| stable-yyyy-mm-dd.N   | Stable build from a specific date                     | stable-2025-11-25.0  |
+| latest-yyyy-mm-dd.N   | Latest build from a specific date                     | latest-2025-11-25.0  |
+| experimental-yyyy-mm-dd.N | Experimental build from a specific date           | experimental-2025-11-25.0 |
+| winehq-yyyy-mm-dd.N   | WineHQ build from a specific date                     | winehq-2025-11-25.0  |
+
+These versioned tags allow you to pin to a specific build date for reproducibility and stability. The counter (N) increments if multiple builds occur on the same day.
 
 ## Parameters
 

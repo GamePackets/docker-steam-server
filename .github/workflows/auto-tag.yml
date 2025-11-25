@@ -1,0 +1,42 @@
+name: Auto Tag on Build Changes
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'Makefile'
+      - 'source/**'
+      - 'Dockerfile/**'
+
+jobs:
+  create-tag:
+    name: Create Date-Based Tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate and Create Tag
+        run: |
+          # Generate base tag name (yyyy-mm-dd)
+          BASE_TAG=$(date +%Y-%m-%d)
+
+          # Find the highest counter for today's date
+          COUNTER=0
+          while git rev-parse "$BASE_TAG.$COUNTER" >/dev/null 2>&1; do
+            COUNTER=$((COUNTER + 1))
+          done
+
+          # Create the new tag
+          TAG_NAME="$BASE_TAG.$COUNTER"
+          echo "Creating tag: $TAG_NAME"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$TAG_NAME" -m "Auto-generated tag for build changes on $BASE_TAG"
+          git push origin "$TAG_NAME"
+
+          echo "Successfully created and pushed tag: $TAG_NAME"

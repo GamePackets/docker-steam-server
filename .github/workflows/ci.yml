@@ -1,12 +1,12 @@
 name: Build Image and Publish
 on:
-  # Run on every main branch push
+  # Run on date-based tags created by auto-tag workflow
   push:
-    branches: [ "main" ]
-    
-  # Run every day at midnight
-  schedule:
-    - cron: "0 0 * * *"
+    tags:
+      - '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].*'
+
+  # Allow manual workflow dispatch
+  workflow_dispatch:
     
 jobs:
   # Deploy a new image to DockerHub
@@ -47,21 +47,21 @@ jobs:
         docker push thetestgame/steam:winehq
         docker push thetestgame/steam:experimental
 
-        # Only add SHA tags if the event is a push to the main branch
-        if [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/heads/main' ]]; then
-          # Retrieve the short SHA
-          SHORT_SHA=$(git rev-parse --short HEAD)
+        # Only add version tags if the event is a tag push
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          # Extract the tag name
+          VERSION_TAG=${GITHUB_REF#refs/tags/}
 
           # Tag and push the images with the new tags
-          docker tag thetestgame/steam:stable thetestgame/steam:stable-$SHORT_SHA
-          docker tag thetestgame/steam:latest thetestgame/steam:latest-$SHORT_SHA
-          docker tag thetestgame/steam:winehq thetestgame/steam:winehq-$SHORT_SHA
-          docker tag thetestgame/steam:experimental thetestgame/steam:experimental-$SHORT_SHA
+          docker tag thetestgame/steam:stable thetestgame/steam:stable-$VERSION_TAG
+          docker tag thetestgame/steam:latest thetestgame/steam:latest-$VERSION_TAG
+          docker tag thetestgame/steam:winehq thetestgame/steam:winehq-$VERSION_TAG
+          docker tag thetestgame/steam:experimental thetestgame/steam:experimental-$VERSION_TAG
 
-          docker push thetestgame/steam:stable-$SHORT_SHA
-          docker push thetestgame/steam:latest-$SHORT_SHA
-          docker push thetestgame/steam:winehq-$SHORT_SHA
-          docker push thetestgame/steam:experimental-$SHORT_SHA
+          docker push thetestgame/steam:stable-$VERSION_TAG
+          docker push thetestgame/steam:latest-$VERSION_TAG
+          docker push thetestgame/steam:winehq-$VERSION_TAG
+          docker push thetestgame/steam:experimental-$VERSION_TAG
         fi
 
     # Publish container images to GitHub Packages
@@ -79,21 +79,21 @@ jobs:
         docker push ghcr.io/${{ github.repository_owner }}/steam:winehq
         docker push ghcr.io/${{ github.repository_owner }}/steam:experimental
 
-        # Only add SHA tags if the event is a push to the main branch
-        if [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/heads/main' ]]; then
-          # Retrieve the short SHA
-          SHORT_SHA=$(git rev-parse --short HEAD)
+        # Only add version tags if the event is a tag push
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          # Extract the tag name
+          VERSION_TAG=${GITHUB_REF#refs/tags/}
 
           # Tag and push the images with the new tags
-          docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable-$SHORT_SHA
-          docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest-$SHORT_SHA
-          docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq-$SHORT_SHA
-          docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental-$SHORT_SHA
+          docker tag thetestgame/steam:stable ghcr.io/${{ github.repository_owner }}/steam:stable-$VERSION_TAG
+          docker tag thetestgame/steam:latest ghcr.io/${{ github.repository_owner }}/steam:latest-$VERSION_TAG
+          docker tag thetestgame/steam:winehq ghcr.io/${{ github.repository_owner }}/steam:winehq-$VERSION_TAG
+          docker tag thetestgame/steam:experimental ghcr.io/${{ github.repository_owner }}/steam:experimental-$VERSION_TAG
 
-          docker push ghcr.io/${{ github.repository_owner }}/steam:stable-$SHORT_SHA
-          docker push ghcr.io/${{ github.repository_owner }}/steam:latest-$SHORT_SHA
-          docker push ghcr.io/${{ github.repository_owner }}/steam:winehq-$SHORT_SHA
-          docker push ghcr.io/${{ github.repository_owner }}/steam:experimental-$SHORT_SHA
+          docker push ghcr.io/${{ github.repository_owner }}/steam:stable-$VERSION_TAG
+          docker push ghcr.io/${{ github.repository_owner }}/steam:latest-$VERSION_TAG
+          docker push ghcr.io/${{ github.repository_owner }}/steam:winehq-$VERSION_TAG
+          docker push ghcr.io/${{ github.repository_owner }}/steam:experimental-$VERSION_TAG
         fi
 
   # Trigger downstream game server repositories to rebuild with new base image
@@ -127,6 +127,13 @@ jobs:
           echo "$REPOS"
           echo ""
 
+          # Extract version tag if available
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION_TAG=${GITHUB_REF#refs/tags/}
+          else
+            VERSION_TAG="latest"
+          fi
+
           # Trigger each repo
           SUCCESS_COUNT=0
           FAIL_COUNT=0
@@ -135,7 +142,7 @@ jobs:
             if gh api repos/${{ github.repository_owner }}/$repo/dispatches \
               --method POST \
               --field event_type="steam-base-updated" \
-              --field client_payload[version]="${{ github.sha }}" \
+              --field client_payload[version]="$VERSION_TAG" \
               --field client_payload[tag]="latest"; then
               echo "✓ Successfully triggered $repo"
               SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
