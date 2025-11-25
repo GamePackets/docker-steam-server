@@ -2,7 +2,7 @@
 dpkg --add-architecture i386 && \
 mkdir -p /etc/apt/keyrings && \
 wget -qO /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key && \
-wget -qO /etc/apt/sources.list.d/winehq-jammy.sources https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources && \
+wget -qO /etc/apt/sources.list.d/winehq-noble.sources https://dl.winehq.org/wine-builds/ubuntu/dists/noble/winehq-noble.sources && \
 apt-get --quiet update && \
 apt-get install --yes --install-recommends \
   libsdl2-2.0-0 \
